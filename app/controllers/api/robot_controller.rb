@@ -9,70 +9,15 @@ class Api::RobotController < ApplicationController
     params[:commands].each do |command|
       case command
       when /^PLACE (\d+),(\d+),(NORTH|EAST|SOUTH|WEST)$/
-        x = $1.to_i
-        y = $2.to_i
-        direction = $3
-
-        if x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT
-          @location = [x, y, direction]
-        else
-          @error_message = "Invalid placement. Robot will fall off the table."
-        end
+        handle_place_command($1.to_i, $2.to_i, $3)
       when "MOVE"
-        if @location
-          x, y, direction = @location
-
-          case direction
-          when "NORTH"
-            y += 1
-          when "EAST"
-            x += 1
-          when "SOUTH"
-            y -= 1
-          when "WEST"
-            x -= 1
-          end
-
-          if x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT
-            @location = [x, y, direction]
-          end
-        end
+        handle_move_command
       when "LEFT"
-        if @location
-          x, y, direction = @location
-
-          case direction
-          when "NORTH"
-            direction = "WEST"
-          when "EAST"
-            direction = "NORTH"
-          when "SOUTH"
-            direction = "EAST"
-          when "WEST"
-            direction = "SOUTH"
-          end
-
-          @location = [x, y, direction]
-        end
+        handle_turn_command("LEFT")
       when "RIGHT"
-        if @location
-          x, y, direction = @location
-
-          case direction
-          when "NORTH"
-            direction = "EAST"
-          when "EAST"
-            direction = "SOUTH"
-          when "SOUTH"
-            direction = "WEST"
-          when "WEST"
-            direction = "NORTH"
-          end
-
-          @location = [x, y, direction]
-        end
+        handle_turn_command("RIGHT")
       when "REPORT"
-        
+        # Do nothing for REPORT command
       else
         @error_message = "Invalid command: #{command}"
       end
@@ -84,6 +29,46 @@ class Api::RobotController < ApplicationController
       render json: { error: @error_message }, status: :unprocessable_entity
     else
       render json: { location: @location }, status: :ok
+    end
+  end
+
+  private
+
+  def handle_place_command(x, y, direction)
+    if x.between?(0, WIDTH - 1) && y.between?(0, HEIGHT - 1)
+      @location = [x, y, direction]
+    else
+      @error_message = "Invalid placement. Robot will fall off the table."
+    end
+  end
+
+  def handle_move_command
+    if @location
+      x, y, direction = @location
+      case direction
+      when "NORTH"
+        y += 1
+      when "EAST"
+        x += 1
+      when "SOUTH"
+        y -= 1
+      when "WEST"
+        x -= 1
+      end
+      @location = [x, y, direction] if x.between?(0, WIDTH - 1) && y.between?(0, HEIGHT - 1)
+    end
+  end
+
+  def handle_turn_command(turn_direction)
+    if @location
+      x, y, direction = @location
+      new_direction = case direction
+                      when "NORTH" then turn_direction == "LEFT" ? "WEST" : "EAST"
+                      when "EAST" then turn_direction == "LEFT" ? "NORTH" : "SOUTH"
+                      when "SOUTH" then turn_direction == "LEFT" ? "EAST" : "WEST"
+                      when "WEST" then turn_direction == "LEFT" ? "SOUTH" : "NORTH"
+                      end
+      @location = [x, y, new_direction]
     end
   end
 end
