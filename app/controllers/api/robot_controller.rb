@@ -66,13 +66,29 @@ class Api::RobotController < ApplicationController
       x, y, direction = @location
       new_direction = case direction
                       when "NORTH"
-                        turn_direction == "LEFT" ? "WEST" : "EAST"
+                        if turn_direction == "LEFT"
+                          "WEST"
+                        else
+                          "EAST"
+                        end
                       when "EAST"
-                        turn_direction == "LEFT" ? "NORTH" : "SOUTH"
+                        if turn_direction == "LEFT"
+                          "NORTH"
+                        else
+                          "SOUTH"
+                        end
                       when "SOUTH"
-                        turn_direction == "LEFT" ? "EAST" : "WEST"
+                        if turn_direction == "LEFT"
+                          "EAST"
+                        else
+                          "WEST"
+                        end
                       when "WEST"
-                        turn_direction == "LEFT" ? "SOUTH" : "NORTH"
+                        if turn_direction == "LEFT"
+                          "SOUTH"
+                        else
+                          "NORTH"
+                        end
                       else
                         @error_message = "Invalid move"
                       end
