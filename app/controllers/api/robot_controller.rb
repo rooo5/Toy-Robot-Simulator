@@ -54,6 +54,8 @@ class Api::RobotController < ApplicationController
         y -= 1
       when "WEST"
         x -= 1
+      else
+        @error_message = "Invalid move"
       end
       @location = [x, y, direction] if x.between?(0, WIDTH - 1) && y.between?(0, HEIGHT - 1)
     end
@@ -63,10 +65,16 @@ class Api::RobotController < ApplicationController
     if @location
       x, y, direction = @location
       new_direction = case direction
-                      when "NORTH" then turn_direction == "LEFT" ? "WEST" : "EAST"
-                      when "EAST" then turn_direction == "LEFT" ? "NORTH" : "SOUTH"
-                      when "SOUTH" then turn_direction == "LEFT" ? "EAST" : "WEST"
-                      when "WEST" then turn_direction == "LEFT" ? "SOUTH" : "NORTH"
+                      when "NORTH"
+                        turn_direction == "LEFT" ? "WEST" : "EAST"
+                      when "EAST"
+                        turn_direction == "LEFT" ? "NORTH" : "SOUTH"
+                      when "SOUTH"
+                        turn_direction == "LEFT" ? "EAST" : "WEST"
+                      when "WEST"
+                        turn_direction == "LEFT" ? "SOUTH" : "NORTH"
+                      else
+                        @error_message = "Invalid move"
                       end
       @location = [x, y, new_direction]
     end
